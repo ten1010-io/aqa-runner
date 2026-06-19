@@ -1,0 +1,17 @@
+{
+  "name": "aqa-runner",
+  "version": "0.1.0",
+  "description": "Offline, LLM-free Playwright runner for compiled aqa-inspect IR (cases.compiled.yaml).",
+  "type": "module",
+  "bin": { "aqa-runner": "src/run.js" },
+  "scripts": {
+    "test": "node --test",
+    "start": "node src/run.js"
+  },
+  "dependencies": {
+    "playwright": "^1.60.0",
+    "yaml": "^2.4.0"
+  },
+  "engines": { "node": ">=20" },
+  "license": "MIT"
+}
