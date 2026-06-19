@@ -47,6 +47,12 @@ export function loadIR(text) {
       if (!VALID_OPS.has(s.op)) {
         throw new Error(`Case ${c.case_id} step ${i + 1} has unknown op: ${s.op}`);
       }
+      if (s.sensitive === true && s.value_ref === undefined && s.value !== undefined) {
+        throw new Error(
+          `Case ${c.case_id} step ${i + 1}: a sensitive step must use value_ref, not a literal value ` +
+          '(a secret must never be baked into the IR).'
+        );
+      }
     }
   }
   return { ir_version: doc.ir_version, name: doc.name, description: doc.description, cases: doc.cases };

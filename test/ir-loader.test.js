@@ -29,3 +29,8 @@ test('rejects a step carrying a natural-language action', () => {
   const bad = 'ir_version: 1\nname: x\ncases:\n  - case_id: a-1\n    name: a\n    expected_result: pass\n    steps:\n      - action: "do it"\n';
   assert.throws(() => loadIR(bad), /not compiled|action/i);
 });
+
+test('rejects a sensitive step that carries a literal value', () => {
+  const bad = 'ir_version: 1\nname: x\ncases:\n  - case_id: a-1\n    name: a\n    expected_result: pass\n    steps:\n      - op: fill\n        selector: { strategy: label, label: "Password" }\n        value: "hunter2"\n        sensitive: true\n';
+  assert.throws(() => loadIR(bad), /sensitive|value_ref|baked/i);
+});
