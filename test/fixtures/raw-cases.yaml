@@ -1,0 +1,7 @@
+name: "Login"
+cases:
+  - case_id: login-001
+    name: "Log in"
+    expected_result: pass
+    steps:
+      - action: "Click the Sign in button"

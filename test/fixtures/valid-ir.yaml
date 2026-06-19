@@ -1,0 +1,13 @@
+ir_version: 1
+name: "Login"
+cases:
+  - case_id: login-001
+    name: "Log in with valid credentials"
+    expected_result: pass
+    steps:
+      - op: goto
+        url: "https://app.example.com/login"
+      - op: click
+        selector: { strategy: role, role: button, name: "Sign in" }
+      - op: assert
+        assert: { type: visible, selector: { strategy: text, text: "Dashboard" } }

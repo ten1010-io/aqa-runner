@@ -1,0 +1,48 @@
+name: release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  bundle:
+    strategy:
+      matrix:
+        include:
+          - { os: windows-latest, label: windows-x64 }
+          - { os: macos-13,       label: macos-x64 }    # Intel
+          - { os: macos-14,       label: macos-arm64 }  # Apple Silicon
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - name: Install deps (browsers into node_modules)
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: '0'   # cache Chromium inside node_modules so it travels with the bundle
+        run: |
+          npm ci
+          npx playwright install chromium
+      - name: Run tests
+        run: npm test
+      - name: Stage portable Node
+        shell: bash
+        run: |
+          mkdir -p portable-node
+          cp -R "$(dirname "$(which node)")/.." portable-node/runtime || cp -R "$(dirname "$(which node)")" portable-node/runtime
+      - name: Assemble bundle
+        env: { PLAYWRIGHT_BROWSERS_PATH: '0' }
+        run: node scripts/make-bundle.mjs ${{ matrix.label }} portable-node/runtime dist/aqa-runner-${{ matrix.label }}
+      - name: Zip bundle
+        shell: bash
+        run: cd dist && (7z a aqa-runner-${{ matrix.label }}.zip aqa-runner-${{ matrix.label }} || zip -r aqa-runner-${{ matrix.label }}.zip aqa-runner-${{ matrix.label }})
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/aqa-runner-${{ matrix.label }}.zip
+# Note on portable Node: the "Stage portable Node" step copies the CI runner's
+# own (official, signed) Node install into the bundle. Verify on the first real
+# tag build that the copied path contains the node/node.exe binary the
+# launchers expect (node/bin/node on macOS, node/node.exe on Windows); adjust
+# the copy target in make-bundle.mjs if the layout differs. This is the one
+# step that must be confirmed against a live runner.
