@@ -55,15 +55,14 @@ async function main() {
     ? parseSecrets(readFileSync(args.secrets, 'utf8')) : new Map();
 
   const outDir = args.out || `reports/${new Date().toISOString().replace(/[:.]/g, '-')}`;
-  const artifactsDir = `${outDir}/artifacts`;
-  mkdirSync(artifactsDir, { recursive: true });
+  mkdirSync(outDir, { recursive: true });
 
   const startedAt = new Date().toISOString();
   const browser = await chromium.launch({ headless: !args.headed });
   let rows;
   try {
     rows = await runPool(ir.cases, args.parallel, (c) =>
-      runCase(browser, c, { tester: args.tester || '', secrets, artifactsDir, screenshot: args.screenshot }));
+      runCase(browser, c, { tester: args.tester || '', secrets, outDir, screenshot: args.screenshot, onLog: (line) => process.stderr.write(line + '\n') }));
   } finally {
     await browser.close();
   }
@@ -76,7 +75,7 @@ async function main() {
     executed_at: startedAt, finished_at: finishedAt,
     duration: `${Math.round((Date.parse(finishedAt) - Date.parse(startedAt)) / 1000)}s`,
     base_url: ir.cases[0]?.steps?.find((s) => s.op === 'goto')?.url || '',
-    engine: 'aqa-runner', browser: 'chromium', commit_hash: ir.ir_version + '',
+    engine: 'aqa-runner', browser: 'chromium', commit_hash: '',
   };
   writeFileSync(`${outDir}/report.html`, renderReport(meta, rows, tpl), 'utf8');
 

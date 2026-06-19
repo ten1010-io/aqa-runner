@@ -20,7 +20,7 @@ test('pass case: fill, click, assert dashboard visible', async () => {
       { op: 'assert', assert: { type: 'visible', selector: { strategy: 'text', text: 'Dashboard' } } },
     ],
   };
-  const row = await runCase(browser, irCase, { tester: 'alice', secrets: new Map([['PW', 'x']]), artifactsDir: 'reports/_t/artifacts' });
+  const row = await runCase(browser, irCase, { tester: 'alice', secrets: new Map([['PW', 'x']]), outDir: 'reports/_t' });
   assert.equal(row.status, 'pass');
   assert.equal(row.discuss_note, '');
 });
@@ -33,8 +33,10 @@ test('fail case: assert missing element → fail with reason + evidence', async 
       { op: 'assert', assert: { type: 'visible', selector: { strategy: 'text', text: 'NeverThere' } } },
     ],
   };
-  const row = await runCase(browser, irCase, { tester: 'alice', secrets: new Map(), artifactsDir: 'reports/_t/artifacts' });
+  const row = await runCase(browser, irCase, { tester: 'alice', secrets: new Map(), outDir: 'reports/_t' });
   assert.equal(row.status, 'fail');
   assert.ok(row.failure_reason.length > 0);
   assert.match(row.evidence_path, /login-009/);
+  assert.ok(!row.evidence_path.startsWith('reports/'));
+  assert.match(row.evidence_path, /^artifacts\//);
 });

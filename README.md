@@ -60,4 +60,4 @@ Exit code `0` = all pass, `1` = at least one fail.
   expected_vs_actual, evidence_path, discuss_note, jira_key`). Offline runs
   produce only `pass` / `fail`.
 - `report.html` — self-contained HTML report.
-- `artifacts/<case_id>/` — failure screenshots.
+- `reports/<timestamp>/artifacts/<case_id>/` — failure screenshots (referenced relatively from report.html).

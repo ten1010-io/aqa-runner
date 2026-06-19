@@ -2,10 +2,18 @@ import { mkdirSync } from 'node:fs';
 import { runOp } from './ops.js';
 import { runAssert } from './assert.js';
 
+function scrub(text, secretValues) {
+  let out = String(text ?? '');
+  for (const v of secretValues) { if (v) out = out.split(v).join('****'); }
+  return out;
+}
+
 export async function runCase(browser, irCase, opts) {
-  const { tester = '', secrets = new Map(), artifactsDir = 'artifacts', screenshot = false } = opts || {};
-  const caseDir = `${artifactsDir}/${irCase.case_id}`;
-  mkdirSync(caseDir, { recursive: true });
+  const { tester = '', secrets = new Map(), outDir = '.', screenshot = false, onLog } = opts || {};
+  const secretValues = [...secrets.values()].filter(Boolean);
+  const relDir = `artifacts/${irCase.case_id}`;
+  const fullDir = `${outDir}/${relDir}`;
+  mkdirSync(fullDir, { recursive: true });
 
   const row = {
     case_id: irCase.case_id, name: irCase.name, status: 'pass', tester,
@@ -21,14 +29,16 @@ export async function runCase(browser, irCase, opts) {
     for (const [i, step] of irCase.steps.entries()) {
       if (step.op === 'assert') {
         await runAssert(page, step.assert);
+        onLog?.(`[${irCase.case_id}] step ${i + 1}: assert ${step.assert.type}`);
       } else {
-        const { locator } = await runOp(page, step, secrets);
+        const { locator, log } = await runOp(page, step, secrets);
         lastLocator = locator || lastLocator;
+        onLog?.(`[${irCase.case_id}] step ${i + 1}: ${log}`);
       }
       if (screenshot) {
-        const shot = `${caseDir}/step-${i + 1}.png`;
-        await page.screenshot({ path: shot }).catch(() => {});
-        row.evidence_path = shot;
+        const relShot = `${relDir}/step-${i + 1}.png`;
+        await page.screenshot({ path: `${outDir}/${relShot}` }).catch(() => {});
+        row.evidence_path = relShot;
       }
     }
     // All steps succeeded.
@@ -39,9 +49,9 @@ export async function runCase(browser, irCase, opts) {
       row.status = 'fail';
       row.failure_reason = 'Expected an error/validation state, but all steps succeeded.';
       row.expected_vs_actual = 'Expected: error state\nActual: flow completed without error';
-      const shot = `${caseDir}/failure.png`;
-      await page.screenshot({ path: shot }).catch(() => {});
-      row.evidence_path = shot;
+      const relShot = `${relDir}/failure.png`;
+      await page.screenshot({ path: `${outDir}/${relShot}` }).catch(() => {});
+      row.evidence_path = relShot;
     }
   } catch (err) {
     // A step/assert threw.
@@ -50,11 +60,11 @@ export async function runCase(browser, irCase, opts) {
       row.status = 'pass';
     } else {
       row.status = 'fail';
-      row.failure_reason = String(err.message ?? err);
-      row.expected_vs_actual = `Expected: step to succeed\nActual: ${String(err.message ?? err)}`;
-      const shot = `${caseDir}/failure.png`;
-      await page.screenshot({ path: shot }).catch(() => {});
-      row.evidence_path = shot;
+      row.failure_reason = scrub(String(err.message ?? err), secretValues);
+      row.expected_vs_actual = scrub(`Expected: step to succeed\nActual: ${String(err.message ?? err)}`, secretValues);
+      const relShot = `${relDir}/failure.png`;
+      await page.screenshot({ path: `${outDir}/${relShot}` }).catch(() => {});
+      row.evidence_path = relShot;
     }
   } finally {
     row.finished_at = new Date().toISOString();
