@@ -16,7 +16,6 @@ compile it first on an internet-connected machine with `aqa-inspect`
 1. On an internet-connected machine, open the repo's **Releases**.
 2. Download the zip for your OS:
    - `aqa-runner-windows-x64.zip`
-   - `aqa-runner-macos-x64.zip` (Intel)
    - `aqa-runner-macos-arm64.zip` (Apple Silicon)
 3. Transfer the zip into the air-gap through your approved channel.
 

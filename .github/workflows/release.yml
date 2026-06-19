@@ -11,7 +11,6 @@ jobs:
       matrix:
         include:
           - { os: windows-latest, label: windows-x64 }
-          - { os: macos-13,       label: macos-x64 }    # Intel
           - { os: macos-14,       label: macos-arm64 }  # Apple Silicon
     runs-on: ${{ matrix.os }}
     # Cache Chromium inside node_modules (not the default per-user cache) so the
