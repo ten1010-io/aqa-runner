@@ -7,19 +7,24 @@ permissions:
 jobs:
   bundle:
     strategy:
+      fail-fast: false   # one OS failing must not cancel the others
       matrix:
         include:
           - { os: windows-latest, label: windows-x64 }
           - { os: macos-13,       label: macos-x64 }    # Intel
           - { os: macos-14,       label: macos-arm64 }  # Apple Silicon
     runs-on: ${{ matrix.os }}
+    # Cache Chromium inside node_modules (not the default per-user cache) so the
+    # browser travels with the bundle AND every step (install, tests, assemble)
+    # resolves the same location. Must be job-level: a step-only value made the
+    # test step look in the default cache and fail with "Executable doesn't exist".
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: '0'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
       - name: Install deps (browsers into node_modules)
-        env:
-          PLAYWRIGHT_BROWSERS_PATH: '0'   # cache Chromium inside node_modules so it travels with the bundle
         run: |
           npm ci
           npx playwright install chromium
@@ -31,7 +36,6 @@ jobs:
           mkdir -p portable-node
           cp -R "$(dirname "$(which node)")/.." portable-node/runtime || cp -R "$(dirname "$(which node)")" portable-node/runtime
       - name: Assemble bundle
-        env: { PLAYWRIGHT_BROWSERS_PATH: '0' }
         run: node scripts/make-bundle.mjs ${{ matrix.label }} portable-node/runtime dist/aqa-runner-${{ matrix.label }}
       - name: Zip bundle
         shell: bash
