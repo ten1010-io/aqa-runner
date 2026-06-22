@@ -57,6 +57,9 @@ Exit code `0` = all pass, `1` = at least one fail.
 - `AQA_TLS_VERIFY=1` — enforce TLS certificate validation. By default the runner
   ignores certificate errors (e.g. `ERR_CERT_AUTHORITY_INVALID`) so targets with
   internal/self-signed certs run without manual browser overrides.
+- `AQA_LOGIN_PATH` — login path used to detect a login-submit click and wait for
+  its redirect before the next step (default `/login`). Set this if your app's
+  login page lives at a different path.
 
 ## Output
 
