@@ -21,7 +21,11 @@ export async function runCase(browser, irCase, opts) {
     evidence_path: '', discuss_note: '', jira_key: '',
   };
 
-  const context = await browser.newContext();
+  const context = await browser.newContext({
+    // Internal/self-signed cert targets raise ERR_CERT_AUTHORITY_INVALID, which
+    // aborts every step. Ignore TLS errors by default; set AQA_TLS_VERIFY=1 to enforce.
+    ignoreHTTPSErrors: process.env.AQA_TLS_VERIFY !== '1',
+  });
   const page = await context.newPage();
   let lastLocator = null;
 
