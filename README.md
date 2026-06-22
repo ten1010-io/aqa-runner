@@ -25,19 +25,25 @@ Nothing to install.
 ## Running
 
 1. Unzip.
-2. Put your `cases.compiled.yaml` in the unzipped folder.
-3. (If the cases use secrets) add a `secrets.env` next to it:
+2. Put your `cases.compiled.yaml` into the **`cases/`** folder. The runner picks
+   it up automatically — no path to type. (Keep just one `.yaml`, or name the one
+   to run `cases.compiled.yaml`.)
+3. Double-click `run.command` (macOS) or `run.bat` (Windows).
+4. **Credentials:** if a case needs a secret (e.g. a login password) and you have
+   not supplied it, the runner pops a dialog asking for it — no `secrets.env`
+   required. To skip the prompt, drop a `secrets.env` next to the launcher:
    ```
-   PW=your-password
+   auth_password=your-password
    TOKEN=...
    ```
-4. Double-click `run.command` (macOS) or `run.bat` (Windows).
 5. Open `reports/<timestamp>/report.html`.
+
+If `cases/` has no YAML, the runner tells you to drop one in and opens the folder.
 
 ### macOS first-run note
 
-macOS Gatekeeper may quarantine files arriving through transfer. If the
-launcher will not open, clear the quarantine flag once:
+The launchers now clear the download quarantine flag themselves, so Gatekeeper
+should not stall or block on first run. If you ever need to clear it manually:
 
 ```bash
 xattr -dr com.apple.quarantine /path/to/aqa-runner-macos-*
@@ -46,9 +52,13 @@ xattr -dr com.apple.quarantine /path/to/aqa-runner-macos-*
 ## CLI (advanced)
 
 ```
-node src/run.js <cases.compiled.yaml> [--secrets secrets.env] [--tester NAME] \
-  [--out reports/DIR] [--headed] [--parallel N] [--screenshot]
+node src/run.js [cases.compiled.yaml] [--cases-dir DIR] [--secrets secrets.env] \
+  [--tester NAME] [--out reports/DIR] [--headed] [--parallel N] [--screenshot]
 ```
+
+With no path argument, the runner discovers the compiled YAML in `--cases-dir`
+(default `cases`). Any secret the cases need but `secrets.env` / `--secrets` does
+not supply is prompted for (native dialog, with a masked terminal fallback).
 
 Exit code `0` = all pass, `1` = at least one fail.
 

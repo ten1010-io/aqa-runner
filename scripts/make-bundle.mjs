@@ -8,7 +8,7 @@ if (!target || !nodeDir || !outDir) {
   process.exit(2);
 }
 mkdirSync(outDir, { recursive: true });
-for (const d of ['src', 'assets', 'node_modules']) {
+for (const d of ['src', 'assets', 'node_modules', 'cases']) {
   if (existsSync(d)) cpSync(d, `${outDir}/${d}`, { recursive: true });
 }
 // Bundle the Playwright browsers cached into node_modules via PLAYWRIGHT_BROWSERS_PATH=0.
