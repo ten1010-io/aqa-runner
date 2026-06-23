@@ -28,22 +28,21 @@ Nothing to install.
 2. Put your `cases.compiled.yaml` into the **`cases/`** folder. The runner picks
    it up automatically — no path to type. (Keep just one `.yaml`, or name the one
    to run `cases.compiled.yaml`.)
-3. **Run it — recommended (macOS/Linux, terminal):**
+3. **Run it from a terminal:**
    ```bash
    cd /path/to/aqa-runner-macos-arm64
-   ./aqa                        # headless; discovers cases/*.yaml
-   ./aqa --tester me --headed   # extra flags pass straight through
+   ./run.command                       # headless; discovers cases/*.yaml
+   ./run.command --tester me --headed  # extra flags pass straight through
    ```
-   Or **double-click** `run.command` (macOS) / `run.bat` (Windows).
+   (Windows: `run.bat`.)
 4. **Credentials:** if a case needs a secret (e.g. a login password) and you have
-   not supplied it:
-   - Running in a terminal (`./aqa`) → it asks right there, masked. Nothing pops up.
-   - Double-clicked → a native dialog asks instead.
-   - To skip the prompt entirely, drop a `secrets.env` next to the launcher:
-     ```
-     auth_password=your-password
-     TOKEN=...
-     ```
+   not supplied it, the runner asks for it right there in the terminal (masked
+   input — nothing is echoed). To skip the prompt, drop a `secrets.env` next to
+   the launcher:
+   ```
+   auth_password=your-password
+   TOKEN=...
+   ```
 5. Open `reports/<timestamp>/report.html`.
 
 If `cases/` has no YAML, the runner tells you to drop one in and opens the folder.
