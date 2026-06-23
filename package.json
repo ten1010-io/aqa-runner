@@ -1,6 +1,6 @@
 {
   "name": "aqa-runner",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Offline, LLM-free Playwright runner for compiled aqa-inspect IR (cases.compiled.yaml).",
   "type": "module",
   "bin": { "aqa-runner": "src/run.js" },

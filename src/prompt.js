@@ -7,21 +7,23 @@ import { spawnSync } from 'node:child_process';
 export async function promptSecret(key) {
   const label = `Enter value for "${key}"`;
 
+  // Prefer an inline masked prompt when run interactively in a terminal (the
+  // recommended way to run). No popup — type the value right where you launched.
+  if (process.stdin.isTTY) return ttyPrompt(label);
+
+  // No interactive terminal (e.g. double-clicked) → fall back to a native dialog.
   if (process.platform === 'darwin') {
     const r = macDialog(label);
     if (r.value !== undefined) return r.value;
     if (r.cancelled) throw new Error(`Cancelled: secret "${key}" was not provided.`);
-    // r.unavailable → fall through to TTY
   } else if (process.platform === 'win32') {
     const r = winPrompt(label);
     if (r.value !== undefined) return r.value;
   }
 
-  if (process.stdin.isTTY) return ttyPrompt(label);
-
   throw new Error(
-    `Missing secret "${key}": no secrets.env entry, no GUI dialog available, and ` +
-    'no interactive terminal. Provide it via secrets.env or --secrets.'
+    `Missing secret "${key}": no secrets.env entry, no interactive terminal, and ` +
+    'no GUI dialog available. Provide it via secrets.env or --secrets.'
   );
 }
 
