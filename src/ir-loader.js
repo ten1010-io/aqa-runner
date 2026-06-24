@@ -1,6 +1,9 @@
 import { parse } from 'yaml';
 
-export const SUPPORTED_IR_VERSION = 1;
+// v1 carried a per-case `expected_result` (pass|fail); v2 drops it — every case
+// is judged purely by whether its steps/asserts pass. Both versions load: an
+// `expected_result` left over on a v1 file is simply ignored.
+export const SUPPORTED_IR_VERSIONS = new Set([1, 2]);
 
 const VALID_OPS = new Set(['goto', 'fill', 'click', 'select', 'check', 'hover', 'press', 'assert']);
 
@@ -19,9 +22,10 @@ export function loadIR(text) {
       'compiled cases.compiled.yaml. Compile it locally with aqa-inspect first.'
     );
   }
-  if (doc.ir_version !== SUPPORTED_IR_VERSION) {
+  if (!SUPPORTED_IR_VERSIONS.has(doc.ir_version)) {
     throw new Error(
-      `Unsupported ir_version: ${doc.ir_version}. This runner supports ir_version ${SUPPORTED_IR_VERSION}.`
+      `Unsupported ir_version: ${doc.ir_version}. This runner supports ir_version ` +
+      `${[...SUPPORTED_IR_VERSIONS].join(', ')}.`
     );
   }
   if (!Array.isArray(doc.cases) || doc.cases.length === 0) {
@@ -31,9 +35,6 @@ export function loadIR(text) {
   for (const c of doc.cases) {
     if (!c.case_id) throw new Error('A case is missing case_id.');
     if (!c.name) throw new Error(`Case ${c.case_id} is missing name.`);
-    if (c.expected_result !== 'pass' && c.expected_result !== 'fail') {
-      throw new Error(`Case ${c.case_id} has invalid expected_result: ${c.expected_result}`);
-    }
     if (!Array.isArray(c.steps) || c.steps.length === 0) {
       throw new Error(`Case ${c.case_id} has no steps.`);
     }

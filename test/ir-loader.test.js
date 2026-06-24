@@ -17,8 +17,23 @@ test('rejects raw cases.yaml (no ir_version, has action steps)', () => {
   assert.throws(() => loadIR(raw), /not compiled|ir_version/i);
 });
 
+test('accepts ir_version 2', () => {
+  const ir = loadIR(
+    'ir_version: 2\nname: x\ncases:\n  - case_id: a-1\n    name: a\n    steps:\n      - op: goto\n        url: "https://x"\n'
+  );
+  assert.equal(ir.ir_version, 2);
+  assert.equal(ir.cases.length, 1);
+});
+
 test('rejects unsupported ir_version', () => {
-  assert.throws(() => loadIR('ir_version: 2\nname: x\ncases: []\n'), /version/i);
+  assert.throws(() => loadIR('ir_version: 3\nname: x\ncases: []\n'), /version/i);
+});
+
+test('loads a v2 case with no expected_result field', () => {
+  const ir = loadIR(
+    'ir_version: 2\nname: x\ncases:\n  - case_id: a-1\n    name: a\n    steps:\n      - op: assert\n        assert: { type: disabled, selector: { strategy: role, role: button, name: "Create" } }\n'
+  );
+  assert.equal(ir.cases[0].case_id, 'a-1');
 });
 
 test('rejects empty cases', () => {

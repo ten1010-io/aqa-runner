@@ -41,31 +41,18 @@ export async function runCase(browser, irCase, opts) {
         row.evidence_path = relShot;
       }
     }
-    // All steps succeeded.
-    if (irCase.expected_result === 'pass') {
-      row.status = 'pass';
-    } else {
-      // expected_result: 'fail' but everything passed → the error state never blocked us.
-      row.status = 'fail';
-      row.failure_reason = 'Expected an error/validation state, but all steps succeeded.';
-      row.expected_vs_actual = 'Expected: error state\nActual: flow completed without error';
-      const relShot = `${relDir}/failure.png`;
-      await page.screenshot({ path: `${outDir}/${relShot}` }).catch(() => {});
-      row.evidence_path = relShot;
-    }
+    // Every step and assert passed. A case encodes its expectation entirely in
+    // its asserts — including negative scenarios (e.g. assert a Create button is
+    // `disabled` when a required field is empty). So all-steps-pass IS the pass.
+    row.status = 'pass';
   } catch (err) {
-    // A step/assert threw.
-    if (irCase.expected_result === 'fail') {
-      // The expected error path manifested as a failing step → that IS a pass.
-      row.status = 'pass';
-    } else {
-      row.status = 'fail';
-      row.failure_reason = scrub(String(err.message ?? err), secretValues);
-      row.expected_vs_actual = scrub(`Expected: step to succeed\nActual: ${String(err.message ?? err)}`, secretValues);
-      const relShot = `${relDir}/failure.png`;
-      await page.screenshot({ path: `${outDir}/${relShot}` }).catch(() => {});
-      row.evidence_path = relShot;
-    }
+    // A step or assert threw → the case failed.
+    row.status = 'fail';
+    row.failure_reason = scrub(String(err.message ?? err), secretValues);
+    row.expected_vs_actual = scrub(`Expected: step to succeed\nActual: ${String(err.message ?? err)}`, secretValues);
+    const relShot = `${relDir}/failure.png`;
+    await page.screenshot({ path: `${outDir}/${relShot}` }).catch(() => {});
+    row.evidence_path = relShot;
   } finally {
     row.finished_at = new Date().toISOString();
     await context.close();
