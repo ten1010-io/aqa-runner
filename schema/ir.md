@@ -1,4 +1,4 @@
-# aqa-runner IR Schema v1 (Authoritative)
+# aqa-runner IR Schema v2 (Authoritative)
 
 `cases.compiled.yaml` is the **only** input `aqa-runner` executes. It is the
 deterministic, LLM-free compilation of an `aqa-inspect` `cases.yaml`, produced
@@ -8,11 +8,18 @@ authoritative contract; the `claude-toolkit` compile step targets it.
 ## Top level
 
 ```yaml
-ir_version: 1            # required; runner refuses any other value
+ir_version: 2            # required; runner accepts 1 or 2
 name: "Login"            # required
 description: "..."       # optional
 cases: [ ... ]           # required, non-empty
 ```
+
+> **v1 → v2:** v2 drops the per-case `expected_result` field. A case now encodes
+> its full expectation in its `assert` steps — including negative scenarios
+> (e.g. assert a Create button is `disabled` when a required field is empty). A
+> case passes when all of its steps and asserts pass, and fails when any throws.
+> v1 files still load; a leftover `expected_result` is ignored (no longer
+> inverts the verdict).
 
 ## Per case
 
@@ -20,7 +27,6 @@ cases: [ ... ]           # required, non-empty
 |---|---|---|
 | `case_id` | yes | stable slug, e.g. `login-001` |
 | `name` | yes | human title (results.csv `name`) |
-| `expected_result` | yes | `pass` or `fail` |
 | `steps` | yes | ordered list of ops |
 | `cleanup` | optional | list, e.g. `- type: clear_cookies` (default applied: new context per case) |
 

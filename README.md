@@ -7,7 +7,8 @@ no internet at run time.
 ## What it runs
 
 `aqa-runner` executes **only** a compiled `cases.compiled.yaml` (it has
-`ir_version: 1` at the top). A raw natural-language `cases.yaml` is rejected —
+`ir_version: 2` at the top; `ir_version: 1` files still run). A raw
+natural-language `cases.yaml` is rejected —
 compile it first on an internet-connected machine with `aqa-inspect`
 (see `ten1010-io/claude-toolkit`). Schema: [`schema/ir.md`](schema/ir.md).
 
