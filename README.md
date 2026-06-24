@@ -26,19 +26,32 @@ Nothing to install.
 ## Running
 
 1. Unzip.
-2. Put your `cases.compiled.yaml` in the unzipped folder.
-3. (If the cases use secrets) add a `secrets.env` next to it:
+2. Put your `cases.compiled.yaml` into the **`cases/`** folder. The runner picks
+   it up automatically — no path to type. (Keep just one `.yaml`, or name the one
+   to run `cases.compiled.yaml`.)
+3. **Run it from a terminal:**
+   ```bash
+   cd /path/to/aqa-runner-macos-arm64
+   ./run.command                       # headless; discovers cases/*.yaml
+   ./run.command --tester me --headed  # extra flags pass straight through
    ```
-   PW=your-password
+   (Windows: `run.bat`.)
+4. **Credentials:** if a case needs a secret (e.g. a login password) and you have
+   not supplied it, the runner asks for it right there in the terminal (masked
+   input — nothing is echoed). To skip the prompt, drop a `secrets.env` next to
+   the launcher:
+   ```
+   auth_password=your-password
    TOKEN=...
    ```
-4. Double-click `run.command` (macOS) or `run.bat` (Windows).
 5. Open `reports/<timestamp>/report.html`.
+
+If `cases/` has no YAML, the runner tells you to drop one in and opens the folder.
 
 ### macOS first-run note
 
-macOS Gatekeeper may quarantine files arriving through transfer. If the
-launcher will not open, clear the quarantine flag once:
+The launchers now clear the download quarantine flag themselves, so Gatekeeper
+should not stall or block on first run. If you ever need to clear it manually:
 
 ```bash
 xattr -dr com.apple.quarantine /path/to/aqa-runner-macos-*
@@ -47,11 +60,24 @@ xattr -dr com.apple.quarantine /path/to/aqa-runner-macos-*
 ## CLI (advanced)
 
 ```
-node src/run.js <cases.compiled.yaml> [--secrets secrets.env] [--tester NAME] \
-  [--out reports/DIR] [--headed] [--parallel N] [--screenshot]
+node src/run.js [cases.compiled.yaml] [--cases-dir DIR] [--secrets secrets.env] \
+  [--tester NAME] [--out reports/DIR] [--headed] [--parallel N] [--screenshot]
 ```
 
+With no path argument, the runner discovers the compiled YAML in `--cases-dir`
+(default `cases`). Any secret the cases need but `secrets.env` / `--secrets` does
+not supply is prompted for (native dialog, with a masked terminal fallback).
+
 Exit code `0` = all pass, `1` = at least one fail.
+
+### Environment variables
+
+- `AQA_TLS_VERIFY=1` — enforce TLS certificate validation. By default the runner
+  ignores certificate errors (e.g. `ERR_CERT_AUTHORITY_INVALID`) so targets with
+  internal/self-signed certs run without manual browser overrides.
+- `AQA_LOGIN_PATH` — login path used to detect a login-submit click and wait for
+  its redirect before the next step (default `/login`). Set this if your app's
+  login page lives at a different path.
 
 ## Output
 

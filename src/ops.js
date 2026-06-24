@@ -17,6 +17,18 @@ export async function runOp(page, step, secrets) {
     case 'click': {
       const loc = toLocator(page, step.selector);
       await loc.click();
+      // A click on a login page submits credentials and triggers an async
+      // client-side redirect to the app. Without waiting, the next step
+      // navigates before the session cookie is set, lands unauthenticated, gets
+      // bounced back to the login page, and its assertions burn the full
+      // timeout — slow AND a false failure. Settle the redirect, but only while
+      // on a login path, so ordinary in-app clicks are not penalized. The path
+      // is overridable via AQA_LOGIN_PATH (default "/login").
+      const loginPath = process.env.AQA_LOGIN_PATH || '/login';
+      if (page.url().includes(loginPath)) {
+        await page.waitForURL((u) => !u.pathname.includes(loginPath), { timeout: 10000 }).catch(() => {});
+        await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      }
       return { locator: loc, log: 'click' };
     }
 
